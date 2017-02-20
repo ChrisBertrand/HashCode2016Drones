@@ -27,51 +27,81 @@ namespace HashCode2016Drone
             public int c;
         }
 
-        public struct ProductType
+        public struct Products
         {
             public int id;
             public int weight;
             public int count;
         }
 
-        public List<ProductType> Products = new List<ProductType>();
+        public List<Products> Products = new List<Products>();
         public List<Warehouse> Warehouses = new List<Warehouse>();
 
         public struct Warehouse
         {
             public int id;
             public Coord location;
-            public List<ProductType> stock;
+            public List<Products> stock;
         }
 
         public struct Order
         {
             public int id;
-            public List<ProductType> purchaseOrder;
+            public List<Products> purchaseOrder;
             public Coord destination;
         }
 
+        public List<Drone> Drones = new List<Drone>();
         public struct Drone
         {
             public int id;
             public Coord location;
             public double distanceTravelled;
+            public List<Products> carrying;
+            public Customer customer;
         }
+
+        public List<Customer> Customers = new List<Customer>();
 
         public struct Customer
         {
             public int id;
-            public Order custOrder;
+            public List<Order> custOrder;
         }
 
-        public void Load(int itemCount, int itemType)
+        public void Load(Drone drone, Warehouse w, int itemCount, Product product)
         {
+            //Instantiate the drone
+            if (drone.carrying is null)
+                {
+                drone.carrying = new List<Products>();
+                drone.location.c = w.location.c;
+                drone.location.r = w.location.r;
+            }
+        }
+          
+        public void RunSimulation()
+        {
+            for (var i = 0; i < Deadline; i++)
+            {
+                foreach (Drone d in Drones)
+                {
+                    // Take the first order
+                    var c = Customers.First();
+                    int numberOfItems = c.custOrder.Count();
 
+                    d.customer = c;
+
+
+                    // Move onto the next order
+                    Customers.Skip(1);
+                }
+            }
         }
 
         public void Deliver()
         {
-
+           
 
         }
 
@@ -102,7 +132,7 @@ namespace HashCode2016Drone
             IEnumerable<string> ProductInfo = file.Skip(2);
             foreach (var info in ProductInfo.First().Split(' ').Select((value, i) => new { i, value } ))
             {
-                ProductType prodType = new ProductType { id = info.i, weight = Convert.ToInt32(info.value) };
+                Products prodType = new Products { id = info.i, weight = Convert.ToInt32(info.value) };
                 Products.Add(prodType);
             }
 
@@ -135,11 +165,11 @@ namespace HashCode2016Drone
 
                 for (var o = 0; o< prodTypes.Length; o++)
                 {
-                    ProductType Prod = Products.Where(prod => prod.id == o).FirstOrDefault();
+                    Products Prod = Products.Where(prod => prod.id == o).FirstOrDefault();
                     Prod.count = Convert.ToInt32(prodTypes[o]);
 
                     Warehouse warehouse = Warehouses.Where(w => w.id == i).First();
-                    warehouse.stock = new List<ProductType>();
+                    warehouse.stock = new List<Products>();
                     warehouse.stock.Add(Prod);
                 }
             }
